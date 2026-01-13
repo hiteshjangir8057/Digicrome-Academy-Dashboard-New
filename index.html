@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digicrome Academy Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --sidebar-bg: #ffffff;
+            --text-color: #2d3436;
+            --primary-color: #0984e3;
+            --border-color: #dfe6e9;
+            --card-hover: #f1f2f6;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --zoom-color: #2D8CFF;
+            --drive-color: #1EA362;
+            --sidebar-width: 420px;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f111a;
+            --sidebar-bg: #1a1c24;
+            --text-color: #e0e0e0;
+            --border-color: #2d2f3b;
+            --card-hover: #252833;
+            --shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        * { box-sizing: border-box; transition: background 0.25s, color 0.25s; }
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            padding: 15px 30px;
+            background: var(--sidebar-bg);
+            border-bottom: 2px solid var(--border-color);
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-area h1 {
+            margin: 0;
+            font-size: 22px;
+            background: linear-gradient(90deg, #0984e3, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 30px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(9, 132, 227, 0.2);
+        }
+
+        .batch-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (min-width: 1200px) {
+            .batch-selector { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .batch-btn {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .batch-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(9, 132, 227, 0.3);
+        }
+
+        /* Main Container */
+        .container { display: flex; flex: 1; overflow: hidden; }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+
+        .lecture-item {
+            padding: 18px 25px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .lecture-item:hover { background: var(--card-hover); }
+        .lecture-item.active { 
+            background: var(--card-hover);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .serial-no {
+            width: 35px; height: 35px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 13px; flex-shrink: 0;
+        }
+
+        .lecture-info { flex: 1; overflow: hidden; }
+        .lecture-title { 
+            font-weight: 600; font-size: 14px; margin-bottom: 6px; 
+            display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        
+        .badge {
+            font-size: 10px; padding: 4px 10px; border-radius: 20px;
+            text-transform: uppercase; font-weight: 800; color: white;
+        }
+        .badge-zoom { background: var(--zoom-color); }
+        .badge-drive { background: var(--drive-color); }
+
+        /* Player Panel */
+        .main-panel {
+            flex: 1; padding: 30px; display: flex; flex-direction: column;
+            gap: 20px; background: var(--bg-color); overflow-y: auto;
+        }
+
+        .video-box {
+            width: 100%; aspect-ratio: 16/9; background: #000;
+            border-radius: 15px; overflow: hidden; box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .placeholder-ui {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; color: #636e72;
+        }
+
+        .controls-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+        .action-btn {
+            padding: 12px 20px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: bold; font-size: 13px;
+            display: none; align-items: center; gap: 8px;
+        }
+
+        .repair-btn { background: #e67e22; color: white; }
+        .download-btn { background: #00b894; color: white; }
+
+        .passcode-banner {
+            background: #ffeaa7; color: #d35400; padding: 15px 25px;
+            border-radius: 10px; display: none; align-items: center;
+            justify-content: space-between; font-weight: 800; border: 1px solid #fdcb6e;
+        }
+
+        .theme-toggle { cursor: pointer; font-size: 22px; background: none; border: none; }
+
+        @media (max-width: 1024px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; height: 300px; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+<header>
+    <div class="header-top">
+        <div class="logo-area"><h1>Digicrome Academy Dashboard</h1></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search by lecture title or month...">
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+    </div>
+    <div class="batch-selector">
+        <button class="batch-btn active" onclick="switchBatch(0)">1. Data Science & AI<br>W-230325-E830-SS-40</button>
+        <button class="batch-btn" onclick="switchBatch(1)">2. Data Analytical Tools<br>DAT4-120725-N2-SS-43</button>
+        <button class="batch-btn" onclick="switchBatch(2)">3. Deep Learning<br>DL10-041025-E8-SS-53</button>
+        <button class="batch-btn" onclick="switchBatch(3)">4. Nexthikes Internship<br>I-120625-TH2PM-B12</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="sidebar" id="lectureList"></div>
+
+    <div class="main-panel">
+        <div class="passcode-banner" id="passcodeBanner">
+            <span>🔑 ZOOM PASSCODE COPIED: <span id="passcodeValue" style="text-decoration: underline;"></span></span>
+            <small>(Paste it in the video player if asked)</small>
+        </div>
+        
+        <div class="controls-row">
+            <button class="action-btn repair-btn" id="repairBtn" onclick="openDirect()">🛠 Repair / Open Link</button>
+            <button class="action-btn download-btn" id="downloadBtn" onclick="downloadDrive()">📥 Download Video</button>
+        </div>
+
+        <div class="video-box" id="videoBox">
+            <div class="placeholder-ui">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="#636e72"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                <p>Welcome! Please select a lecture from the sidebar to start.</p>
+            </div>
+        </div>
+        <h2 id="currentTitle" style="margin:0; font-size: 20px; color: var(--primary-color);"></h2>
+    </div>
+</div>
+
+<script>
+    // --- COMPREHENSIVE DATASET ---
+    const batchData = {
+        0: [ // DS & AI (Saurav)
+                        { title: "Feb 29 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1KV4V1Y1p04pTkJtVYWWDWyPR1DpIRgCt/view?usp=drive_link" },
+{ title: "Mar 05 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/18NQF3bv8dm5xvsaqhjFAE-gG2za6Eqkc/view?usp=drive_link" },
+{ title: "Mar 23 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1vcpKNPCHoxG-2yVhoWeD4YfwFZO-Xwks/view?usp=drive_link" },
+{ title: "Mar 23 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1vcpKNPCHoxG-2yVhoWeD4YfwFZO-Xwks/view?usp=drive_link" },
+{ title: "Mar 23 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1vcpKNPCHoxG-2yVhoWeD4YfwFZO-Xwks/view?usp=drive_link" },
+{ title: "Mar 29 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1KV4V1Y1p04pTkJtVYWWDWyPR1DpIRgCt/view?usp=drive_link" },
+{ title: "Mar 29 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1KV4V1Y1p04pTkJtVYWWDWyPR1DpIRgCt/view?usp=drive_link" },
+{ title: "Mar 30 – Divya (08:00 PM)", link: "https://drive.google.com/file/d/1Uj-7uL1N948g0XT0k9HTvaVa4hK1SstJ/view?usp=drive_link" },
+{ title: "Mar 30 – Divya (08:00 PM)", link: "https://drive.google.com/file/d/1Uj-7uL1N948g0XT0k9HTvaVa4hK1SstJ/view?usp=drive_link" },
+{ title: "Mar 30 – Divya (08:00 PM)", link: "https://drive.google.com/file/d/1Uj-7uL1N948g0XT0k9HTvaVa4hK1SstJ/view?usp=drive_link" },
+{ title: "Apr 06 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1Aunv6rkaSuqU1j7WvetJqQGJ3Rk5U-mN/view?usp=drive_link" },
+{ title: "Apr 12 – Divya (08:00 PM)", link: "https://drive.google.com/file/d/1csv0QigHqEcMLISb78Xiq18vO0zm7Yzf/view?usp=drive_link" },
+{ title: "Apr 13 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1jj4g5_p74GUB2B4mO7ccBNqibLV9LLKF/view?usp=drive_link" },
+{ title: "Apr 19 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1d92wH55yxabWSvOTkhY0u7igoArDKWAz/view?usp=drive_link" },
+{ title: "Apr 20 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1V8RK9SowNm78_iFq4rvgN_EfS_kmpOXw/view?usp=drive_link" },
+{ title: "Apr 26 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1kPnvdToZHIgpHjHm4qUpOCdpnis6NGaS/view?usp=drive_link" },
+{ title: "Apr 27 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1ZIh8hlcGF-v_mRuSY-estzTFjw3klbdU/view?usp=drive_link" },
+{ title: "May 03 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1FWygax2Q7exquy_6PRq3ePHCP9FwoVWD/view?usp=drive_link" },
+{ title: "May 04 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1NbiYnnT8P4GzzGh4qCw-Tfw9eK1cnh8e/view?usp=drive_link" },
+{ title: "May 10 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1bkb7I6mvUTj8lWrCR56VEhe6BLsec7gX/view?usp=drive_link" },
+{ title: "May 11 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1AY2H8flWpihRYONKGFLHNRpNlu4V3n-e/view?usp=drive_link" },
+{ title: "May 17 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1N3Crmp2JFHcIaIIkkbHbGaWley2MB6LY/view?usp=drive_link" },
+{ title: "May 18 – Divya (08:00 PM)", link: "https://drive.google.com/file/d/1kfBfr5rUcCftvHOHzht5einmJ9xkKnHq/view?usp=drive_link" },
+{ title: "May 24 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/159JGfuAXpLGSNc0oU2FbniRdkOjDrP5P/view?usp=drive_link" },
+{ title: "May 25 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1cPV4OctkQYB6y1gq-uocnVLXMVzmJK1n/view?usp=drive_link" },
+{ title: "May 31 – Divya (08:00 PM)", link: "https://drive.google.com/file/d/16MsFUQvmVzegGOlK5wYusPyNS0IH-Em2/view?usp=drive_link" },
+{ title: "June 01 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1810l7TAKHdoaR5ymT7G7AgTwBCP43v_M/view?usp=drive_link" },
+{ title: "June 07 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/19DNxiNJLdlJjfIJfw8Gcc0cHznVBctoZ/view?usp=drive_link" },
+{ title: "June 08 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1wBp6n4AaCY4XKjX5-A3RlnjfnR8Vaf0V/view?usp=drive_link" },
+{ title: "June 14 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1QmA9Dm6AN-Ebjqk_hWErumCu-0rVgoIa/view?usp=drive_link" },
+{ title: "June 15 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1pZs9u-KVPWEhvykrk9rM9_oi2rPc2-hp/view?usp=drive_link" },
+{ title: "June 21 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1hzm1oOrtZ5PiMKAtPaln40Hq5O4qoni9/view?usp=drive_link" },
+{ title: "June 22 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1FPF2dWmaQR0d0XIpKCSm628pl0jyf7NT/view?usp=drive_link" },
+{ title: "June 28 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1wfG0rmxIUrT9ums2vll8zZmlbfVGeX9I/view?usp=drive_link" },
+{ title: "June 29 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1v02Zj9mvLIuIw6EHnvB52bPg8zFWEH8u/view?usp=drive_link" },
+{ title: "July 05 – Divya (08:30 PM) Passcode: q9!E8v7D", link: "https://us06web.zoom.us/rec/play/mnIsm1VFG06rEVjj9UemF851LgNdkZ9I18DHFCqsGE2RV0dTmCdLBMfAIrGcNeQxEbqx6cNMJGL5P8WX.Psq1dA8L_PaDj3OV" },
+{ title: "July 06 – Divya (08:00 PM) Passcode: N1qjM+$U", link: "https://us06web.zoom.us/rec/play/BwrZdQnPvsMCboyCE0VOMJ9ZUFD_RiqlN41fQ1nTSLP2d7E51aDvNeyqaYjk_bgmvCRBDxxV34JYGyTc._LIwRcSZWMTZL6Ld" },
+{ title: "July 12 – Divya (08:00 PM) Passcode: 24f$KfG=", link: "https://us06web.zoom.us/rec/play/3bkxFlazN3X89jYKMHP0Y91qct3YWJB7zl6i7PGA8J_NLtFUvjZ1rwKXtSKPzEBv39NU8CYmgIfE8sU7.sSgeHYqgbZn89qEy" },
+{ title: "July 13 – Divya (08:00 PM) Passcode: 5*rGtq9c", link: "https://us06web.zoom.us/rec/play/m9JNfC-byh75_7q7fvhtuHgTRQTpGgXjaQvOk0jIX5OFLMuRjbtEC3uXHhYG6R3-vO3iy5f8BIG8xqHe.vFp7rpIyZEDq_cIK" },
+{ title: "July 19 – Divya (08:00 PM) Passcode: nXR!4E&5", link: "https://us06web.zoom.us/rec/play/kWZOsdMjvdpqfc-3LfAfrwwX09VFCfzSBRGG6BFr7oED9hBVtn5PgQNOqdxGIO8klebeX0PLHt0oadAQ.AawyShfcwZicZbJD" },
+{ title: "July 20 – Divya (08:00 PM) Passcode: 0g+@@sEU", link: "https://us06web.zoom.us/rec/play/DAeFjfInyYevEjUrZNo98ZRMFy0fUQXrui90hh2hH8G4kZPf85y2-VU6XKs34qpBVIqJnMCTsfmGJYb2.K-RW7rnMcPob-gDw" },
+{ title: "July 26 – Divya (08:00 PM) Passcode: FV2+W3+e", link: "https://us06web.zoom.us/rec/play/SdRlLfX-y501r5W2xRnH86iftzLpxS6Ug16jyb8flyiPIC7zYXzWkMn0HDeQpYjglfmaoDelHsd0p62b.H5yNDul3VoRDXXcE" },
+{ title: "July 27 – Divya (08:00 PM) Passcode: =L1i#B30", link: "https://us06web.zoom.us/rec/play/yzcTGKRhmrZRS1sjeMYaAGwfsANWv5itcoYNn2klOfHyUvI-rPgiBX37lO_ml4ElB-d9d3NHCxao8U9w.wOqI-AvWi8fwd_Co" },
+{ title: "Aug 02 – Divya (08:00 PM) Passcode: tX+d2av6", link: "https://us06web.zoom.us/rec/play/4TRIQUk59EaOvW58qrQlA_uEQVDALl8hI9fDShu-AJHk_2wI0ZriLtgkgUZ_QomNaNfRaTa-W0GRmm21.lcY_C8UCie3c5Yg-" },
+{ title: "Aug 03 – Divya (08:00 PM) Passcode: .jeN6O%0", link: "https://us06web.zoom.us/rec/play/Fujlh0Drr8NUOHLRe8iE9LfQC2v9HvPRg9oMrJ8wHbgLpjIk6kVwsZL_Ig_kKV9d863Ln8s3HKgeaWnI.Fh91IepJv8qQL0Lq" },
+{ title: "Aug 10 – Divya (08:00 PM) Passcode: Zvs20c$3", link: "https://us06web.zoom.us/rec/play/dk8iCus1d6kYHkq5WZvgj0hmE6N3IwJo7Tv25pPY1_4ZqTZsfldyh60Y2ookZh-00HthjK2pGN4lW2E.wj4wpkf5qReaumHt" },
+{ title: "Aug 16 – Divya (08:00 PM) Passcode: 7U1=G+M0", link: "https://us06web.zoom.us/rec/play/qqw5W-M-oJCCgCXxRpLicDkoLTmUaSZ6xgXr0rKTVbtmkKXEf1BPf8kgSTSL9g72IUVqn32gxvo0YPk.jJR8H6w2OSQ3ZkO4" },
+{ title: "Aug 17 – Divya (08:00 PM) Passcode: UG52&myX", link: "https://us06web.zoom.us/rec/play/Qc8ojo5B7CFVEOgn8yw9BAN9TLCVfB7ctxVINnYhs-dN1EKJkZek-T3VB9Q13A_EYObJ1KAN_fDNxFtm.EwwR3BGqHZEPkO7y" },
+{ title: "Aug 23 – Divya (08:00 PM) Passcode: A4G%1G1M", link: "https://us06web.zoom.us/rec/play/DQ6FZ9jJsSDGVtIb1hYGOKf-3EMmGqvvDPr7WIMg4afae6d7Uqbh_cEE9WnnYjtjBtBJJmTS8GAavZGZ.6Dci-hcOSzPYQNcN" },
+{ title: "Aug 24 – Divya (08:30 PM) Passcode: i!Bu5S2W", link: "https://us06web.zoom.us/rec/play/xKlkgr49jD3Kh0rgs8jzfQl2ov6VaS3nI_x5KTK4P5HWvkD88g0r03KCrW7a32iYNkFm5we9zRMNHZWi.d7x_3kxlOK77EJbf" },
+{ title: "Aug 30 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1G5XCLt6sndC5wjuxIFB1J5wNo8E-LuBG/view?usp=drive_link" },
+{ title: "Aug 31 – Divya (08:30 PM) Passcode: %Gn#97*?", link: "https://us06web.zoom.us/rec/play/oL3J-Nr17o9Cr8ZkoTeGC0MmTRsfJLyJ_0xZC6Vb_D4t20nzQKM2pxqB79E_sJDfuLE81Z2PafZ4TvRu.9o9_LjDtCSLap6hv" },
+{ title: "Sep 06 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1dFdMQdtZKNhYUILR3cY3HmDifybk9DMr/view?usp=drive_link" },
+{ title: "Sep 07 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1CuTOmePmLp5pK9Z-IEhr6qyD6DZjf-RH/view?usp=drive_link" },
+{ title: "Sep 13 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1EC_O0iprtF7U1pIT1c7ZODLymOHnZMU-/view?usp=drive_link" },
+{ title: "Sep 14 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1diE2-OMtPGpN5cwt2EDa__XSRb6PiQp_/view?usp=drive_link" },
+{ title: "Sep 20 – Divya (08:30 PM)", link: "https://drive.google.com/file/d/1LEqUqrXfbMmoLJbewV1u2hkt2JTQ-6xK/view?usp=drive_link" }
+        ],
+        1: [ // Data Analytical Tools (Divya)
+           { title: "July 12 – Divya (02:00 PM) Passcode: @M8zn73e", link: "https://us06web.zoom.us/rec/play/YP5EM4p8XGr6Z0HMXBeYlwjQapZxbFfjN6XwA68IFyjzXkqLJTPfwp5BGrDOar55XzGWFoQFufc1dsc8.szlbB7CzskdsnpLj" },
+{ title: "July 13 – Divya (02:00 PM) Passcode: Q$Ew?q^0", link: "https://us06web.zoom.us/rec/play/fLkbLpgeJlnj2ucyHRD6eSWWLwR0xiVpyEQkwxDvea8_SE1b6Q7t9FifQXo76M6pjbKDuTUIIbMzGbjk.lQ0_BsdPIBUuqtZX" },
+{ title: "July 19 – Divya (02:00 PM) Passcode: 77e2Fqe&", link: "https://us06web.zoom.us/rec/play/Z8mZt-Bypgos-xVdmMd-Rz0Wf7yET4yW8fso1DwaD_A4PQtqDgSVBmUoYr0GJQBvazzJAFNijqwzaNlo.RVSDwaIbW-MBDzVe" },
+{ title: "July 20 – Divya (02:00 PM) Passcode: 08OFi7?#", link: "https://us06web.zoom.us/rec/play/PvUfQArm3HDwPFwOkNYcYnHx1DspQ9voBOVbC3O8ChBl9pmoLGGGRZc27Gb8LeigrV-vl4-WOHFDbsfD.9c2-KFTm3Yq5W5Yg" },
+{ title: "July 20 – Divya (02:00 PM) Passcode: 08OFi7?#", link: "https://us06web.zoom.us/rec/play/GHibKBPLzZ65t6q7fYmrg2RtFx3mXr6AHOikrT2EBm2FAKWvuhWBaB4GmnsS9I0XaX1NT4dcz-JNYt3v.NlzTGqWM__5bJ_TU" },
+{ title: "July 26 – Divya (02:00 PM) Passcode: +8it1C*v", link: "https://us06web.zoom.us/rec/play/vsSoQamnFZycLSutJYMDJvcEvI6E9a-DWM5q7En5ef5uNzs8dZhpjpxGHdYcM4r5-6um9ZN27PfK0sAf.VdplQvlyNq3_3p_u" },
+{ title: "July 27 – Divya (02:00 PM) Passcode: CfpI0e==", link: "https://us06web.zoom.us/rec/play/yFGc7cMJJMqT_6zXTvB9lrwaXIZMcrjx-WGzZODtN11zXtt1u1jLRDUVA5NHlIQBdtJDschVHWilFCL7.xQ0QSfVUiXjXPICX" },
+{ title: "Aug 02 – Divya (02:00 PM) Passcode: ^Mi+2Gbj", link: "https://us06web.zoom.us/rec/play/Wlp6zZjbva1hVLfXXEVFNWKM6MBz_PCEtiPey4L_X4cU2HuUZtZb6J36WlY5m-pbGm9cGnEa3GNIvA05.fW-GdibTr5ZsT0RK" },
+{ title: "Aug 03 – Divya (02:00 PM) Passcode: 3LDJP.2e", link: "https://us06web.zoom.us/rec/play/nD2cnX1JLjekkC4_IcPh5F6m2HA4GMLZZ6uYz1zZjSHkh6OT1fAPBS-gfdH83HrGxIXBMIhvTN7ow5jK.FsADx2UMMKi7XgrS" },
+{ title: "Aug 10 – Divya (02:00 PM) Passcode: nT995Ii&", link: "https://us06web.zoom.us/rec/play/O-_ESMAF462lax-_EfoC4TjxJsbrUp67wCCqahAG55F7xVLUtgI3X0l2hDtgMHPmtRI-RDnPSPb1nTNV.xvPIuIt3hkkSQ9_l" },
+{ title: "Aug 16 – Divya (02:00 PM) Passcode: 1R@JyHKf", link: "https://us06web.zoom.us/rec/play/rDmvUaWO7WLSDzskOhCpOx_wMksTI37ouzOJwoyXtyfBV5oVL1afz9bJ-kElaz8IJAO2aDXdkQRXwoQJ.2neFumx8QljZFmox" },
+{ title: "Aug 17 – Divya (02:00 PM) Passcode: 6q$uX+w#", link: "https://us06web.zoom.us/rec/play/Lv3SRLI_1WHlYJRI3WpjYr7moUCTMxUr1gadBeQbSKoZSTXpZeuJPrXKO0uJAo2HB5lkbWBSgQ2PNGct.aHn9zjTDmwnLcumU" },
+{ title: "Aug 23 – Divya (02:00 PM) Passcode: +aR3=6.A", link: "https://us06web.zoom.us/rec/play/es6RWpfxSxVJQm2ZFNAVAjgtSVLPQ7C3ynJ4Qp3Pg7MiSIIvWYg3DhISTyVI1qtZyY1_J9xDuveCquHt._wrdVlP02hwr3Muz" },
+{ title: "Aug 24 – Divya (02:00 PM) Passcode: 735&%5ZD", link: "https://us06web.zoom.us/rec/play/Qa6rxOXpjiCTyFPpwgJmQh2r-GLG3UJAHn-GNVLdxtguz8hRycgD482Bk7125kdiG-7Y_GUV1wlN8EaL.zhKpD0oaXY0y15uU" },
+{ title: "Aug 30 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1jX0a_0Cc072PGpZIljxampbDhsm41EVS/view?usp=drive_link" },
+{ title: "Aug 31 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/136emvMWP5YvFm1RDVYY_aUl_9mc_yg6l/view?usp=drive_link" },
+{ title: "Sep 06 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1MHTjK5J4xNHWzJ_Ex0URrHmvSjI9JsyL/view?usp=drive_link" },
+{ title: "Sep 07 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1XsUWNk1nAeyg0P529jIJpd3Z8iNWN1mQ/view?usp=drive_link" },
+{ title: "Sep 13 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1KMjv3Oph0jCMoDXz9jrfbYuA-DLtVPOS/view?usp=drive_link" },
+{ title: "Sep 14 – Divya (10:00 AM)", link: "https://drive.google.com/file/d/1nlMLDztexBKO_NezWQ6eXj8OzTZElgQG/view?usp=drive_link" },
+{ title: "Sep 20 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1b5ZS82VZKbO_Wkk5z0xRnT5MHObFOiI3/view?usp=drive_link" },
+{ title: "Sep 21 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1bLLk74j5VJVvlGBj-uzwPH4HK866Xp5k/view?usp=drive_link" },
+{ title: "Sep 27 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1SeP0t2ul3fqxiOIxOChM7eY85U-GsEXV/view?usp=drive_link" },
+{ title: "Sep 28 – Divya (02:00 PM)", link: "https://drive.google.com/file/d/1eF4EH-ikdxxz55MdTrMnkQ8MCS8KTJ0e/view?usp=drive_link" }
+        ],
+        2: [ // Deep Learning (Divya Solanki)
+           { title: "Oct 04 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1aeAHg-kyuT9AK3vlQ30CC7WXu4nS80pP/view?usp=drive_link" },
+{ title: "Oct 05 – Saurav", link: "https://drive.google.com/file/d/1MEAEhBAomaY-kshJ2EkiHMAuK67oWXtC/view?usp=drive_link" },
+{ title: "Oct 11 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/13S0-YCZue-iwh5XO65rIYkuI1o7AGlWa/view?usp=drive_link" },
+{ title: "Oct 12 – Saurav Passcode: $M2kMMQ1", link: "https://us06web.zoom.us/rec/play/fNFlHxDxIn8Ck4HCZB6H4UCtqF_2IU8dpR_hGFuGycP9obaaGREt3rTP4QCbx-x7goIn_z2jwCmMyJjf.x43khbB_e8Vo_EpM" },
+{ title: "Oct 25 – Saurav Passcode: udp8*m4k", link: "https://us06web.zoom.us/rec/play/iwwQKphEqs4w1pXm6Hr0T_j9iqLV379mP4tz1TdafBC2lDBAdd_hrISx99wPV7zu6EvJJpMQBn2Kh5uY.NGibccY_CmGgBV4S" },
+{ title: "Nov 02 – Saurav (08:00 PM) Passcode: 3yi2T8r$", link: "https://us06web.zoom.us/rec/play/FdF5ygCqTDXX5UJS7EfWPESR68P0C3_-AJpN_Ec5rRfPMPN-fjmeRsSlyModKAEWTAm7f6JygJouq4ib.dBrhQHR-k-y4CSnN" },
+{ title: "Nov 06 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/11AzFpbIBqKzjcpsVWgJ2roUcTruFBFr0/view?usp=drive_link" },
+{ title: "Nov 08 – Saurav (10:30 PM)", link: "https://drive.google.com/file/d/1tz6u4a7w-W41i0eZKFsKmGvDSHcjZ3QS/view?usp=drive_link" },
+{ title: "Nov 09 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/16Qx2GXDZT1ELSvF-JToG9nEe3YceDQHe/view?usp=drive_link" },
+{ title: "Nov 15 – Saurav (08:30 PM)", link: "https://drive.google.com/file/d/1Vxh_o8N2cw-HZewmKcBaUs1JL997Cuae/view?usp=drive_link" },
+{ title: "Nov 16 – Saurav (08:30 PM)", link: "https://drive.google.com/file/d/1gj6bdQzBBRdVsADvqJ0faSNbFnK8RW2G/view?usp=drive_link" },
+{ title: "Nov 22 – Saurav (08:00 PM) Passcode: 1McC!V*?", link: "https://us06web.zoom.us/rec/play/7qLOMOpKO6YGjQwjr46UrmBhBoc94EUlxM8NJIgtErdusRD_TV28YsfmR9irdbuPyqkUNMYx7y1TxXNS.2nSarFEdSXF5ruRb" },
+{ title: "Nov 23 – Saurav (08:00 PM) Passcode: 6!59?Se*", link: "https://us06web.zoom.us/rec/play/parWYsBou7-z-iQt0cvpj9f89Duz_wsLzGWaDBexqSusB1Q536MwFHgiulmRmGB6PaVFOFX66bwM7gtE.xgj7ca76Czi8VFJy" },
+{ title: "Nov 29 – Saurav (08:30 PM)", link: "https://drive.google.com/file/d/1uPQ8koNFILUVGv9rIGZ6-QmRzRczn1m7/view?usp=drive_link" },
+{ title: "Nov 30 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1fmumV3dHq8ZmVigMajPA8xXS9J9yg5YK/view?usp=drive_link" },
+{ title: "Dec 07 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1xNztZ5jHyJ8Q2Z2fX81geBd_MReAiyDm/view?usp=drive_link" },
+{ title: "Dec 13 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/15yfl-xRE6-C5ZZkFfWpGg9YdOprDJ3Yb/view?usp=drive_link" },
+{ title: "Dec 13 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1Ef5Ci5AwhEHUJKKGcjiYdY7oJvSnkU2F/view?usp=drive_link" },
+{ title: "Dec 14 – Saurav Passcode: X4E*8J4z", link: "https://us06web.zoom.us/rec/play/lnay7OdMw-4bIiU71ta5g8e3LQrXfn6DbqJiH_2ZdZptvSaavFPzQNfXTOt1gtW4ZIbHwkDHYrLXmqEj.nfSxF4j6o7jXYNdX" },
+{ title: "Dec 20 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1IDrmYEgjiUD1pMmJ3pHQu5uH4-XSZuIS/view?usp=drive_link" },
+{ title: "Dec 21 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1mQoIM4uBF9FfCFbhNsLq2_e2C9nZtw6-/view?usp=drive_link" },
+{ title: "Dec 27 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1-SbPT0jmm0OP9ZhlkK5OTz8V3VP67mMN/view?usp=drive_link" },
+{ title: "Dec 28 – Saurav (08:00 PM)", link: "https://drive.google.com/file/d/1k3j7SzuNMZNQJ4MbdRBftjwXWEnXNOcy/view?usp=drive_link" }        ],
+        3: [ // Internship (Nexthikes)
+           { title: "June 12 – Nexthikes Project Training Class 12 Months", link: "https://drive.google.com/file/d/1hpuzQcr2oJ4YWLFMXM2KGxmexre4_18P/view?usp=drive_link" },
+{ title: "June 19 – Nexthikes Project Training Class 12 Months", link: "https://drive.google.com/file/d/1PkI7l0sBp6WJnL_u9f5vYIXsuU7MpE2U/view?usp=drive_link" },
+{ title: "June 26 – Nexthikes Passcode: L2Wo!7p@", link: "https://us06web.zoom.us/rec/play/GEtMV9pjeP2XiPVx87dxMLb2fLwvDNwAHLWoqjRyCtRQ-cfYzgweEyHM68H98FysJ23gx5aPFyIGdu-w.IkqCM3tGzCB0N4hN" },
+{ title: "June 26 – Nexthikes B12", link: "https://drive.google.com/file/d/1y0xGgsP82_kvYnoPt5kpwHl9kfBhh8xB/view?usp=drive_link" },
+{ title: "June 26 – Nexthikes B12", link: "https://drive.google.com/file/d/1y0xGgsP82_kvYnoPt5kpwHl9kfBhh8xB/view?usp=drive_link" },
+{ title: "July 10 – Nexthikes B12 Passcode: 5H&4$C7w", link: "https://us06web.zoom.us/rec/play/ireaFcNrFJYsi3n5kzx6PLfUOOEGqambSi3i2YGzcVLmQC4IbWG83JVuUmMdq410ueJmbHYR245xRj3_.VwaF6arV6fR-al65" },
+{ title: "July 24 – Nexthikes Internship Passcode: 96%f%s0@", link: "https://us06web.zoom.us/rec/play/6L8WZ7pOfmOb-t7qKq6DD9V7kgRkj_witRMJ9WBQvz-Vc3ZFS0pB0CQTBrPjQ9cVjowRFB6Q54Wgb3Pz.7GPh3WPMIc44a6I0" },
+{ title: "July 31 – Nexthikes Internship Passcode: uw&$usq3", link: "https://us06web.zoom.us/rec/play/KIUbPOcFdqMw346BG4KcHEiUahZgYQ0lSfPdqvCmhX45yw8aqAfWRypmAOYGgNRsB7rqm7PSOCcjxVpq.dgMvzeIZRBj9r60U" },
+{ title: "Aug 21 – Nexthikes I-120625-TH Passcode: *bfE0@40", link: "https://us06web.zoom.us/rec/play/2PEFQ0gbYnpVbynDgCWcaMl7klYiWUw0RNUbq8PMdjinm8dLMYiPhtxycx13VBkpivj9ePrV0YlTU01E.RFrqKRQTCjKyn2MK" },
+{ title: "Aug 28 – Nexthikes B12", link: "https://drive.google.com/file/d/12zGCrv9vRjpnqpAaMznqbO9mZ0U75myO/view?usp=drive_link" },
+{ title: "Sep 04 – Nexthikes Passcode: 5@7oq7Hz", link: "https://us06web.zoom.us/rec/play/Ys6sIYw00NMLeMVA3eUw8MbySkD4D0fw474PJo1KwWfJKZoE5u9ki7J2WWE9_iyBfo8-TrpwM_yWsqHd.8nK4wsxe_ucBsOxT" },
+{ title: "Sep 11 – Nexthikes Passcode: 19dh$7yS", link: "https://us06web.zoom.us/rec/play/j55sKAY_6uqCVwK8tiVS7KQlq_8aV8Jgbx2DFdWA1x8gYGOxFd9R2_i9fpU95y0KMiBbw9q3iVVtSRMV.CkGy04wwDz3INfHu" },
+{ title: "Sep 18 – Nexthikes B12", link: "https://drive.google.com/open?id=1_8z8r8Fn06rhEGOQ63jnuSMqC3SqHAH7" },
+{ title: "Sep 25 – Nexthikes B12", link: "https://drive.google.com/open?id=1ji8LQIJgYUvQYaWa9GLZYnoRabkDpZJA" },
+{ title: "Oct 09 – Nexthikes B12", link: "https://drive.google.com/open?id=15_3oUVpusba_c2omYy_NISHOf1X57orx" },
+{ title: "Oct 16 – Nexthikes B12", link: "https://drive.google.com/open?id=15w25OJYJrQR8SAZxvBcpZq7kYTMh8_bB" },
+{ title: "Oct 23 – Nexthikes B12", link: "https://drive.google.com/open?id=17Z9U-AhsAV2tStjCfB_PyGqvEdZctYdM" },
+{ title: "Oct 30 – Nexthikes B12", link: "https://drive.google.com/open?id=1GETY0TNtCv9Vq3VLIPAcDGmKj3BOvPWi" },
+{ title: "Nov 06 – Nexthikes B12", link: "https://drive.google.com/open?id=11pWUamIBsmiwyjROnjQWynV0qwuS7Ld2" },
+{ title: "Nov 12 – Nexthikes B12", link: "https://drive.google.com/open?id=10BeoeatIFuE-XhvE4nZtUPNsngBASBfV" },
+{ title: "Nov 13 – Nexthikes B12", link: "https://drive.google.com/open?id=1MOqD0WCOvyWKp4bkduu5rhM9T_WVE-LA" },
+{ title: "Nov 20 – Nexthikes B12", link: "https://drive.google.com/open?id=1g5iS71lymy9JbYjbZTnAVxs1j4n1wJtk" },
+{ title: "Nov 27 – Nexthikes B12", link: "https://drive.google.com/open?id=1wxuOi0AaURmX-PaU_ZkhwYJZfKLo8HFR" },
+{ title: "Dec 04 – Nexthikes B12", link: "https://drive.google.com/open?id=1PinFkUgyOTSZyQhpWz_byReNYnd8h-Df" },
+{ title: "Dec 18 – Nexthikes B12", link: "https://drive.google.com/open?id=12_iQu4iqDA5Bcyz7T8Xolt6UdDssc05Q" }
+        ]
+    };
+
+    let activeBatch = 0;
+    let currentLink = "";
+
+    // --- CORE LOGIC ---
+    function parseDate(title) {
+        const months = {jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11};
+        const str = title.toLowerCase();
+        const dmy = str.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (dmy) return new Date(dmy[3], dmy[2]-1, dmy[1]);
+        for (let m in months) {
+            if (str.includes(m)) {
+                const dayMatch = str.match(/\d+/);
+                return new Date(2025, months[m], dayMatch ? dayMatch[0] : 1);
+            }
+        }
+        return new Date(0);
+    }
+
+    function renderLectures() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const list = document.getElementById('lectureList');
+        list.innerHTML = '';
+        
+        const sorted = [...batchData[activeBatch]].sort((a,b) => parseDate(a.title) - parseDate(b.title));
+        const filtered = sorted.filter(i => i.title.toLowerCase().includes(query));
+
+        filtered.forEach((item, idx) => {
+            const isZoom = item.link.includes('zoom.us');
+            const div = document.createElement('div');
+            div.className = 'lecture-item';
+            div.onclick = () => selectVideo(item, div);
+            div.innerHTML = `
+                <div class="serial-no">${idx + 1}</div>
+                <div class="lecture-info">
+                    <span class="lecture-title" title="${item.title}">${item.title}</span>
+                    <span class="badge ${isZoom ? 'badge-zoom' : 'badge-drive'}">${isZoom ? 'Zoom' : 'Google Drive'}</span>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function selectVideo(item, element) {
+        document.querySelectorAll('.lecture-item').forEach(x => x.classList.remove('active'));
+        element.classList.add('active');
+        
+        const videoBox = document.getElementById('videoBox');
+        const repairBtn = document.getElementById('repairBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const passBanner = document.getElementById('passcodeBanner');
+        
+        currentLink = item.link;
+        document.getElementById('currentTitle').innerText = item.title;
+
+        // Zoom Passcode Logic
+        const passMatch = item.title.match(/Passcode:\s*([^\s]+)/i);
+        if (passMatch) {
+            const code = passMatch[1];
+            passBanner.style.display = 'flex';
+            document.getElementById('passcodeValue').innerText = code;
+            navigator.clipboard.writeText(code);
+        } else {
+            passBanner.style.display = 'none';
+        }
+
+        // URL Transformation
+        let embedUrl = item.link;
+        if (item.link.includes('drive.google.com')) {
+            const fileId = item.link.match(/[-\w]{25,}/);
+            if (fileId) {
+                embedUrl = `https://drive.google.com/file/d/${fileId[0]}/preview`;
+                downloadBtn.style.display = 'flex';
+            }
+            repairBtn.style.display = 'flex';
+        } else {
+            repairBtn.style.display = 'flex'; // Repair always useful for zoom too
+            downloadBtn.style.display = 'none';
+        }
+
+        videoBox.innerHTML = `<iframe src="${embedUrl}" allow="autoplay" allowfullscreen></iframe>`;
+    }
+
+    function downloadDrive() {
+        if (currentLink.includes('drive.google.com')) {
+            const fileId = currentLink.match(/[-\w]{25,}/);
+            if (fileId) {
+                const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId[0]}`;
+                window.open(downloadUrl, '_blank');
+            }
+        }
+    }
+
+    function switchBatch(id) {
+        activeBatch = id;
+        document.querySelectorAll('.batch-btn').forEach((b, i) => b.classList.toggle('active', i === id));
+        document.getElementById('searchInput').value = '';
+        resetUI();
+        renderLectures();
+    }
+
+    function resetUI() {
+        document.getElementById('videoBox').innerHTML = `<div class="placeholder-ui"><p>Select a lecture</p></div>`;
+        document.getElementById('currentTitle').innerText = '';
+        document.getElementById('repairBtn').style.display = 'none';
+        document.getElementById('downloadBtn').style.display = 'none';
+        document.getElementById('passcodeBanner').style.display = 'none';
+    }
+
+    function openDirect() { if (currentLink) window.open(currentLink, '_blank'); }
+    function toggleTheme() {
+        const body = document.body;
+        body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderLectures);
+    window.onload = renderLectures;
+</script>
+
+</body>
+</html>
